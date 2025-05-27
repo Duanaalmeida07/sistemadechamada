@@ -8,7 +8,7 @@
 const CONFIG = {
     // URL do Google Apps Script Web App publicado
     // IMPORTANTE: Substitua esta URL pela URL do seu Web App após publicá-lo
-    API_URL: "https://script.google.com/macros/s/AKfycby1L8FdvNusY2-8p8JoXWONrLczWIyzk2RMRKzkYBuW6eIolsadEZh-Vc556NZmbkGJ/exec",
+    API_URL: "https://script.google.com/macros/s/AKfycbw6GQdaODMIt4T6z2GCVTXgYD256RDj3F6P5Z_9ADNJeHZff1a8F07lUqdWRxyEI6HX/exec",
     
     // Nome do aplicativo
     APP_NAME: "Sistema de Chamada",
