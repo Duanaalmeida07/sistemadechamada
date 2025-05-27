@@ -22,21 +22,18 @@ class API {
      */
     async get(action, params = {}) {
         try {
-            // Constrói a URL com os parâmetros
             const url = new URL(this.apiUrl);
             url.searchParams.append('action', action);
             
-            // Adiciona os parâmetros adicionais
             Object.entries(params).forEach(([key, value]) => {
                 url.searchParams.append(key, value);
             });
             
             console.log(`Fazendo requisição GET para: ${url}`);
             
-            // Realiza a requisição
             const response = await fetch(url, {
                 method: 'GET',
-                redirect: 'follow' // Necessário para Apps Script Web Apps
+                redirect: 'follow'
             });
             
             if (!response.ok) {
@@ -66,10 +63,9 @@ class API {
         try {
             console.log(`Fazendo requisição POST para: ${this.apiUrl}`, { action, data });
             
-            // Realiza a requisição
             const response = await fetch(this.apiUrl, {
                 method: 'POST',
-                redirect: 'follow', // Necessário para Apps Script Web Apps
+                redirect: 'follow',
                 body: JSON.stringify({
                     action: action,
                     data: data
@@ -95,73 +91,34 @@ class API {
     
     // --- Funções específicas para as operações do sistema ---
     
-    /**
-     * Busca a lista de turmas
-     * @returns {Promise<Array>} - Lista de turmas
-     */
     async getTurmas() {
         return this.get('getTurmas');
     }
     
-    /**
-     * Busca a lista de disciplinas
-     * @returns {Promise<Array>} - Lista de disciplinas
-     */
     async getDisciplinas() {
         return this.get('getDisciplinas');
     }
     
-    /**
-     * Busca a lista de professores
-     * @returns {Promise<Array>} - Lista de professores
-     */
     async getProfessores() {
         return this.get('getProfessores');
     }
     
-    /**
-     * Busca a lista de alunos de uma turma
-     * @param {string} turmaId - ID da turma
-     * @returns {Promise<Array>} - Lista de alunos
-     */
     async getAlunos(turmaId) {
         return this.get('getAlunos', { turmaId });
     }
     
-    /**
-     * Salva os dados de uma chamada
-     * @param {Object} dadosChamada - Dados da chamada a serem salvos
-     * @returns {Promise<Object>} - Confirmação do salvamento
-     */
     async salvarChamada(dadosChamada) {
         return this.post('salvarChamada', dadosChamada);
     }
     
-    /**
-     * Salva múltiplas chamadas em lote
-     * @param {Array<Object>} listaChamadas - Lista de chamadas a serem salvas
-     * @returns {Promise<Object>} - Confirmação do salvamento em lote
-     */
     async salvarChamadasEmLote(listaChamadas) {
         return this.post('salvarChamadasEmLote', listaChamadas);
     }
     
-    /**
-     * Gera um relatório
-     * @param {string} tipo - Tipo de relatório
-     * @param {Object} params - Parâmetros do relatório
-     * @returns {Promise<Object>} - Dados do relatório
-     */
     async gerarRelatorio(tipo, params) {
         return this.get('getRelatorio', { tipo, ...params });
     }
     
-    /**
-     * Gera um relatório em PDF
-     * @param {string} tipoRelatorio - Tipo de relatório
-     * @param {Object} dadosRelatorio - Dados do relatório
-     * @returns {Promise<Object>} - URL do PDF gerado
-     */
     async gerarRelatorioPDF(tipoRelatorio, dadosRelatorio) {
         return this.get('getRelatorio', { 
             tipo: 'pdf',
@@ -173,3 +130,37 @@ class API {
 
 // Cria uma instância global da API
 const api = new API();
+
+/**
+ * Função utilitária para requisições flexíveis com `fetch`
+ * 
+ * @param {string} endpoint - Query string de parâmetros ou vazio
+ * @param {string} method - Método HTTP ('GET' ou 'POST')
+ * @param {Object|null} data - Dados para enviar no corpo (POST)
+ * @returns {Promise<Object>} - Objeto vazio por causa do no-cors
+ */
+async function fetchAPI(endpoint, method = 'GET', data = null) {
+    try {
+        const url = `${CONFIG.API_URL}${endpoint ? '?' + endpoint : ''}`;
+        
+        const options = {
+            method: method,
+            mode: 'no-cors',  // Importante para evitar bloqueios de CORS
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        };
+        
+        if (data && method === 'POST') {
+            options.body = JSON.stringify(data);
+        }
+        
+        const response = await fetch(url, options);
+        
+        // Como estamos usando 'no-cors', não podemos ler a resposta diretamente
+        return {};
+    } catch (error) {
+        console.error('Erro na API:', error);
+        throw error;
+    }
+}
