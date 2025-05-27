@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Chamada</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="manifest" href="manifest.json">
+    <!-- Ícones para PWA -->
+    <link rel="icon" href="img/favicon.ico">
+    <link rel="apple-touch-icon" href="img/icon-192x192.png">
+    <!-- Fontes -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <!-- Ícones -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Cabeçalho -->
+        <header class="app-header">
+            <div class="menu-toggle" id="menuToggle">
+                <i class="fas fa-bars"></i>
+            </div>
+            <h1 class="app-title">Sistema de Chamada</h1>
+            <div class="user-info" id="userInfo">
+                <i class="fas fa-user"></i>
+            </div>
+        </header>
+
+        <!-- Menu lateral -->
+        <nav class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h2>Menu</h2>
+                <button class="close-sidebar" id="closeSidebar">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <ul class="sidebar-menu">
+                <li data-view="home"><i class="fas fa-home"></i> Início</li>
+                <li data-view="attendance"><i class="fas fa-clipboard-check"></i> Fazer Chamada</li>
+                <li data-view="reports"><i class="fas fa-chart-bar"></i> Relatórios</li>
+                <li data-view="settings"><i class="fas fa-cog"></i> Configurações</li>
+            </ul>
+        </nav>
+
+        <!-- Overlay para quando o menu estiver aberto em mobile -->
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+        <!-- Conteúdo principal -->
+        <main class="main-content" id="mainContent">
+            <!-- O conteúdo será carregado dinamicamente aqui -->
+            <!-- Tela de carregamento inicial -->
+            <div class="loading-container">
+                <div class="spinner"></div>
+                <p>Carregando...</p>
+            </div>
+        </main>
+    </div>
+
+    <!-- Templates HTML para as diferentes views -->
+    <!-- Estes templates serão carregados dinamicamente pelo JavaScript -->
+
+    <!-- Template: Home -->
+    <template id="template-home">
+        <div class="view-container home-view">
+            <h2>Bem-vindo ao Sistema de Chamada</h2>
+            <div class="dashboard-cards">
+                <div class="card" data-view="attendance">
+                    <div class="card-icon">
+                        <i class="fas fa-clipboard-check"></i>
+                    </div>
+                    <div class="card-content">
+                        <h3>Fazer Chamada</h3>
+                        <p>Registre a presença dos alunos</p>
+                    </div>
+                </div>
+                <div class="card" data-view="reports">
+                    <div class="card-icon">
+                        <i class="fas fa-chart-bar"></i>
+                    </div>
+                    <div class="card-content">
+                        <h3>Relatórios</h3>
+                        <p>Visualize e exporte relatórios</p>
+                    </div>
+                </div>
+                <div class="card" data-view="settings">
+                    <div class="card-icon">
+                        <i class="fas fa-cog"></i>
+                    </div>
+                    <div class="card-content">
+                        <h3>Configurações</h3>
+                        <p>Ajuste as configurações do sistema</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- Template: Seleção para Chamada -->
+    <template id="template-attendance-selection">
+        <div class="view-container attendance-selection-view">
+            <h2>Fazer Chamada</h2>
+            <div class="form-container">
+                <form id="attendanceSelectionForm">
+                    <div class="form-group">
+                        <label for="professorSelect">Professor:</label>
+                        <select id="professorSelect" required>
+                            <option value="">Selecione o professor</option>
+                            <!-- Opções serão carregadas dinamicamente -->
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="turmaSelect">Turma:</label>
+                        <select id="turmaSelect" required>
+                            <option value="">Selecione a turma</option>
+                            <!-- Opções serão carregadas dinamicamente -->
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="disciplinaSelect">Disciplina:</label>
+                        <select id="disciplinaSelect" required>
+                            <option value="">Selecione a disciplina</option>
+                            <!-- Opções serão carregadas dinamicamente -->
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="dataInput">Data:</label>
+                        <input type="date" id="dataInput" required>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">Iniciar Chamada</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </template>
+
+    <!-- Template: Registro de Chamada -->
+    <template id="template-attendance-register">
+        <div class="view-container attendance-register-view">
+            <div class="attendance-header">
+                <h2>Registro de Chamada</h2>
+                <div class="attendance-info">
+                    <p><strong>Turma:</strong> <span id="turmaInfo"></span></p>
+                    <p><strong>Disciplina:</strong> <span id="disciplinaInfo"></span></p>
+                    <p><strong>Data:</strong> <span id="dataInfo"></span></p>
+                </div>
+            </div>
+            
+            <div class="attendance-progress">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <p><span id="currentStudent">0</span>/<span id="totalStudents">0</span> alunos</p>
+            </div>
+
+            <div class="student-card" id="studentCard">
+                <h3 id="studentName">Nome do Aluno</h3>
+                
+                <div class="periods-container">
+                    <div class="period">
+                        <h4>1º Período</h4>
+                        <div class="status-buttons" data-period="1">
+                            <button class="status-btn" data-status="Presente" title="Presente"><i class="fas fa-check"></i> P</button>
+                            <button class="status-btn" data-status="Falta" title="Falta"><i class="fas fa-times"></i> F</button>
+                            <button class="status-btn" data-status="Falta Justificada" title="Falta Justificada"><i class="fas fa-file-medical"></i> FJ</button>
+                            <button class="status-btn" data-status="Asterisco" title="Asterisco"><i class="fas fa-asterisk"></i> *</button>
+                            <button class="status-btn" data-status="Dispensa" title="Dispensa"><i class="fas fa-user-clock"></i> D</button>
+                        </div>
+                    </div>
+                    
+                    <div class="period">
+                        <h4>2º Período</h4>
+                        <div class="status-buttons" data-period="2">
+                            <button class="status-btn" data-status="Presente" title="Presente"><i class="fas fa-check"></i> P</button>
+                            <button class="status-btn" data-status="Falta" title="Falta"><i class="fas fa-times"></i> F</button>
+                            <button class="status-btn" data-status="Falta Justificada" title="Falta Justificada"><i class="fas fa-file-medical"></i> FJ</button>
+                            <button class="status-btn" data-status="Asterisco" title="Asterisco"><i class="fas fa-asterisk"></i> *</button>
+                            <button class="status-btn" data-status="Dispensa" title="Dispensa"><i class="fas fa-user-clock"></i> D</button>
+                        </div>
+                    </div>
+                    
+                    <div class="period">
+                        <h4>3º Período</h4>
+                        <div class="status-buttons" data-period="3">
+                            <button class="status-btn" data-status="Presente" title="Presente"><i class="fas fa-check"></i> P</button>
+                            <button class="status-btn" data-status="Falta" title="Falta"><i class="fas fa-times"></i> F</button>
+                            <button class="status-btn" data-status="Falta Justificada" title="Falta Justificada"><i class="fas fa-file-medical"></i> FJ</button>
+                            <button class="status-btn" data-status="Asterisco" title="Asterisco"><i class="fas fa-asterisk"></i> *</button>
+                            <button class="status-btn" data-status="Dispensa" title="Dispensa"><i class="fas fa-user-clock"></i> D</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="observation-container">
+                    <label for="observationInput">Observação:</label>
+                    <textarea id="observationInput" placeholder="Observações (opcional)"></textarea>
+                </div>
+                
+                <div class="student-actions">
+                    <button id="prevStudentBtn" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Anterior</button>
+                    <button id="saveStudentBtn" class="btn btn-primary">Salvar e Próximo <i class="fas fa-arrow-right"></i></button>
+                </div>
+            </div>
+            
+            <div class="attendance-actions">
+                <button id="finishAttendanceBtn" class="btn btn-success">Concluir Chamada</button>
+                <button id="cancelAttendanceBtn" class="btn btn-danger">Cancelar</button>
+            </div>
+        </div>
+    </template>
+
+    <!-- Template: Seleção de Relatórios -->
+    <template id="template-reports">
+        <div class="view-container reports-view">
+            <h2>Relatórios</h2>
+            <div class="reports-cards">
+                <div class="card" data-report="presencaTurma">
+                    <div class="card-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <div class="card-content">
+                        <h3>Presença por Turma</h3>
+                        <p>Visualize a presença de todos os alunos de uma turma</p>
+                    </div>
+                </div>
+                <div class="card" data-report="rankingFaltosos">
+                    <div class="card-icon">
+                        <i class="fas fa-sort-amount-down"></i>
+                    </div>
+                    <div class="card-content">
+                        <h3>Ranking de Faltosos</h3>
+                        <p>Lista dos alunos que mais faltaram</p>
+                    </div>
+                </div>
+                <div class="card" data-report="diasLetivos">
+                    <div class="card-icon">
+                        <i class="fas fa-calendar-check"></i>
+                    </div>
+                    <div class="card-content">
+                        <h3>Dias Letivos</h3>
+                        <p>Contagem de dias com chamadas registradas</p>
+                    </div>
+                </div>
+                <div class="card" data-report="historicoAluno">
+                    <div class="card-icon">
+                        <i class="fas fa-user-graduate"></i>
+                    </div>
+                    <div class="card-content">
+                        <h3>Histórico por Aluno</h3>
+                        <p>Histórico individual de frequência</p>
+                    </div>
+                </div>
+                <div class="card" data-report="frequenciaDisciplina">
+                    <div class="card-icon">
+                        <i class="fas fa-book"></i>
+                    </div>
+                    <div class="card-content">
+                        <h3>Frequência por Disciplina</h3>
+                        <p>Análise de frequência por disciplina</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- Template: Filtros de Relatório -->
+    <template id="template-report-filters">
+        <div class="view-container report-filters-view">
+            <h2>Filtros do Relatório: <span id="reportTypeTitle"></span></h2>
+            <div class="form-container">
+                <form id="reportFiltersForm">
+                    <div class="form-group" id="turmaFilterGroup">
+                        <label for="turmaFilterSelect">Turma:</label>
+                        <select id="turmaFilterSelect">
+                            <option value="">Selecione a turma</option>
+                            <!-- Opções serão carregadas dinamicamente -->
+                        </select>
+                    </div>
+                    <div class="form-group" id="alunoFilterGroup" style="display: none;">
+                        <label for="alunoFilterSelect">Aluno:</label>
+                        <select id="alunoFilterSelect">
+                            <option value="">Selecione o aluno</option>
+                            <!-- Opções serão carregadas dinamicamente -->
+                        </select>
+                    </div>
+                    <div class="form-group" id="disciplinaFilterGroup" style="display: none;">
+                        <label for="disciplinaFilterSelect">Disciplina:</label>
+                        <select id="disciplinaFilterSelect">
+                            <option value="">Selecione a disciplina</option>
+                            <!-- Opções serão carregadas dinamicamente -->
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="dataInicioFilter">Data Início:</label>
+                        <input type="date" id="dataInicioFilter">
+                    </div>
+                    <div class="form-group">
+                        <label for="dataFimFilter">Data Fim:</label>
+                        <input type="date" id="dataFimFilter">
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" id="backToReportsBtn" class="btn btn-secondary">Voltar</button>
+                        <button type="submit" class="btn btn-primary">Gerar Relatório</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </template>
+
+    <!-- Template: Visualização de Relatório -->
+    <template id="template-report-view">
+        <div class="view-container report-view">
+            <div class="report-header">
+                <h2>Relatório: <span id="reportTitle"></span></h2>
+                <div class="report-info" id="reportInfo">
+                    <!-- Informações do relatório serão inseridas aqui -->
+                </div>
+            </div>
+            
+            <div class="report-actions">
+                <button id="backToFiltersBtn" class="btn btn-secondary"><i class="fas fa-arrow-left"></i> Voltar</button>
+                <button id="downloadPdfBtn" class="btn btn-primary"><i class="fas fa-file-pdf"></i> Download PDF</button>
+                <button id="downloadCsvBtn" class="btn btn-primary"><i class="fas fa-file-csv"></i> Download CSV</button>
+            </div>
+            
+            <div class="report-content" id="reportContent">
+                <!-- O conteúdo do relatório será inserido aqui -->
+                <div class="loading-container">
+                    <div class="spinner"></div>
+                    <p>Gerando relatório...</p>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- Template: Configurações -->
+    <template id="template-settings">
+        <div class="view-container settings-view">
+            <h2>Configurações</h2>
+            <div class="settings-container">
+                <div class="settings-section">
+                    <h3>Aparência</h3>
+                    <div class="form-group">
+                        <label for="themeSelect">Tema:</label>
+                        <select id="themeSelect">
+                            <option value="light">Claro</option>
+                            <option value="dark">Escuro</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="settings-section">
+                    <h3>Aplicativo</h3>
+                    <div class="form-group">
+                        <label for="defaultTurmaSelect">Turma Padrão:</label>
+                        <select id="defaultTurmaSelect">
+                            <option value="">Nenhuma</option>
+                            <!-- Opções serão carregadas dinamicamente -->
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="defaultProfessorSelect">Professor Padrão:</label>
+                        <select id="defaultProfessorSelect">
+                            <option value="">Nenhum</option>
+                            <!-- Opções serão carregadas dinamicamente -->
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="settings-section">
+                    <h3>Sobre o Sistema</h3>
+                    <p><strong>Sistema de Chamada</strong></p>
+                    <p>Versão 1.0.0</p>
+                    <p>Desenvolvido para facilitar o registro de presença escolar.</p>
+                </div>
+                
+                <div class="form-actions">
+                    <button id="saveSettingsBtn" class="btn btn-primary">Salvar Configurações</button>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- Scripts -->
+    <script src="js/config.js"></script>
+    <script src="js/api.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/reports.js"></script>
+    <script src="js/attendance.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Registra o Service Worker para PWA (se o navegador suportar)
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('service-worker.js')
+                    .then(registration => {
+                        console.log('Service Worker registrado com sucesso:', registration);
+                    })
+                    .catch(error => {
+                        console.log('Falha ao registrar o Service Worker:', error);
+                    });
+            });
+        }
+    </script>
+</body>
+</html>
